@@ -1,12 +1,14 @@
+x-app-build-args: &app-build-args
+  NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?Set NEXT_PUBLIC_SUPABASE_URL or run docker compose with --env-file}
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:?Set NEXT_PUBLIC_SUPABASE_ANON_KEY or run docker compose with --env-file}
+  NEXT_PUBLIC_WHATSAPP_NUMBER: ${NEXT_PUBLIC_WHATSAPP_NUMBER:?Set NEXT_PUBLIC_WHATSAPP_NUMBER or run docker compose with --env-file}
+
 services:
   web:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL:?Set NEXT_PUBLIC_SUPABASE_URL or run docker compose with --env-file}
-        - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY:?Set NEXT_PUBLIC_SUPABASE_ANON_KEY or run docker compose with --env-file}
-        - NEXT_PUBLIC_WHATSAPP_NUMBER=${NEXT_PUBLIC_WHATSAPP_NUMBER:?Set NEXT_PUBLIC_WHATSAPP_NUMBER or run docker compose with --env-file}
+      args: *app-build-args
     image: kr-importacoes:latest
     container_name: kr-importacoes
     restart: unless-stopped
@@ -16,6 +18,11 @@ services:
       - path: .env.production
         required: false
     environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - HOSTNAME=0.0.0.0
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: 0.0.0.0
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?Set NEXT_PUBLIC_SUPABASE_URL or run docker compose with --env-file}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:?Set NEXT_PUBLIC_SUPABASE_ANON_KEY or run docker compose with --env-file}
+      NEXT_PUBLIC_WHATSAPP_NUMBER: ${NEXT_PUBLIC_WHATSAPP_NUMBER:?Set NEXT_PUBLIC_WHATSAPP_NUMBER or run docker compose with --env-file}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
+      MAINTENANCE_MODE: ${MAINTENANCE_MODE:-false}
