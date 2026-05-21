@@ -24,7 +24,7 @@ export function buildOrderWhatsAppMessage(params: {
 }): string {
   const location = [params.city, params.state].filter(Boolean).join(" - ");
   const lines = [
-    "Ola! Gostaria de finalizar meu pedido na KR Servicos e Importacoes.",
+    "Olá! Gostaria de finalizar meu pedido na KR Serviços e Importações.",
     "",
     `Pedido: #${params.orderId.slice(0, 8).toUpperCase()}`,
     `Cliente: ${params.customerName}`,
@@ -35,7 +35,7 @@ export function buildOrderWhatsAppMessage(params: {
     `Quantidade: ${params.quantity}`,
     `Total: ${formatCurrency(params.totalCents)}`,
     "",
-    "Aguardo confirmacao. Obrigado!",
+    "Aguardo confirmação. Obrigado!",
   ].filter((line): line is string => line !== null);
 
   return lines.join("\n");

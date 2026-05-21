@@ -27,10 +27,10 @@ export function ProductsTable({ products }: { products: Product[] }) {
           <thead className="border-b border-zinc-100 bg-zinc-50/80">
             <tr>
               <th className="px-4 py-3 font-medium text-zinc-600">Produto</th>
-              <th className="px-4 py-3 font-medium text-zinc-600">Preco</th>
+              <th className="px-4 py-3 font-medium text-zinc-600">Preço</th>
               <th className="px-4 py-3 font-medium text-zinc-600">Estoque</th>
               <th className="px-4 py-3 font-medium text-zinc-600">Status</th>
-              <th className="px-4 py-3 font-medium text-zinc-600">Acoes</th>
+              <th className="px-4 py-3 font-medium text-zinc-600">Ações</th>
             </tr>
           </thead>
           <tbody>

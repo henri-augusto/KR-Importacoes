@@ -2,9 +2,22 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import { createServiceClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import {
+  formatPhoneDisplay,
+  isValidBrazilianPhone,
+  normalizePhone,
+} from "@/lib/utils/phone";
 import { buildOrderWhatsAppMessage, buildWhatsAppUrl } from "@/lib/utils/whatsapp";
-import type { Product } from "@/lib/types/database";
+import type { Customer, Product } from "@/lib/types/database";
+
+const phoneSchema = z
+  .string()
+  .min(1, "Informe um telefone válido")
+  .transform(normalizePhone)
+  .refine(isValidBrazilianPhone, {
+    message: "Informe um telefone válido (10 ou 11 dígitos)",
+  });
 
 const checkoutSchema = z.object({
   productId: z.string().min(1),
@@ -14,12 +27,12 @@ const checkoutSchema = z.object({
   unitPriceCents: z.coerce.number().int().positive(),
   quantity: z.coerce.number().int().min(1).max(99),
   customerName: z.string().min(2, "Informe seu nome"),
-  customerPhone: z.string().min(10, "Informe um telefone valido"),
+  customerPhone: phoneSchema,
   customerEmail: z
     .string()
     .optional()
     .transform((v) => (v === "" || !v ? undefined : v))
-    .pipe(z.string().email("E-mail invalido").optional()),
+    .pipe(z.string().email("E-mail inválido").optional()),
   customerCity: z.string().optional(),
   customerState: z.string().max(2).optional(),
 });
@@ -29,6 +42,97 @@ export type CheckoutState = {
   error?: string;
   whatsappUrl?: string;
 };
+
+export type CustomerLookupResult = {
+  found: boolean;
+  customer?: Pick<Customer, "name" | "email" | "city" | "state">;
+};
+
+export async function lookupCustomerByPhone(
+  phone: string,
+): Promise<CustomerLookupResult> {
+  const normalized = normalizePhone(phone);
+  if (!isValidBrazilianPhone(normalized)) {
+    return { found: false };
+  }
+
+  if (!isSupabaseConfigured()) {
+    return { found: false };
+  }
+
+  const supabase = createServiceClient();
+  if (!supabase) {
+    return { found: false };
+  }
+
+  const { data, error } = await supabase
+    .from("customers")
+    .select("name, email, city, state")
+    .eq("phone", normalized)
+    .maybeSingle();
+
+  if (error || !data) {
+    return { found: false };
+  }
+
+  return {
+    found: true,
+    customer: {
+      name: data.name,
+      email: data.email,
+      city: data.city,
+      state: data.state,
+    },
+  };
+}
+
+async function upsertCustomerByPhone(
+  supabase: NonNullable<ReturnType<typeof createServiceClient>>,
+  data: {
+    customerName: string;
+    customerPhone: string;
+    customerEmail?: string;
+    customerCity?: string;
+    customerState?: string;
+  },
+): Promise<{ id: string } | null> {
+  const phone = data.customerPhone;
+
+  const { data: existing } = await supabase
+    .from("customers")
+    .select("id")
+    .eq("phone", phone)
+    .maybeSingle();
+
+  const payload = {
+    name: data.customerName,
+    phone,
+    email: data.customerEmail || null,
+    city: data.customerCity || null,
+    state: data.customerState?.toUpperCase() || null,
+  };
+
+  if (existing) {
+    const { data: updated, error } = await supabase
+      .from("customers")
+      .update(payload)
+      .eq("id", existing.id)
+      .select("id")
+      .single();
+
+    if (error || !updated) return null;
+    return updated;
+  }
+
+  const { data: created, error } = await supabase
+    .from("customers")
+    .insert(payload)
+    .select("id")
+    .single();
+
+  if (error || !created) return null;
+  return created;
+}
 
 export async function createWhatsAppOrder(
   _prev: CheckoutState,
@@ -51,11 +155,12 @@ export async function createWhatsAppOrder(
   if (!parsed.success) {
     return {
       ok: false,
-      error: parsed.error.issues[0]?.message ?? "Dados invalidos",
+      error: parsed.error.issues[0]?.message ?? "Dados inválidos",
     };
   }
 
   const data = parsed.data;
+  const phoneDisplay = formatPhoneDisplay(data.customerPhone);
   const totalCents = data.unitPriceCents * data.quantity;
   const product: Pick<Product, "name" | "brand"> = {
     name: data.productName,
@@ -67,7 +172,7 @@ export async function createWhatsAppOrder(
     const message = buildOrderWhatsAppMessage({
       orderId: mockOrderId,
       customerName: data.customerName,
-      customerPhone: data.customerPhone,
+      customerPhone: phoneDisplay,
       city: data.customerCity,
       state: data.customerState,
       product,
@@ -77,25 +182,21 @@ export async function createWhatsAppOrder(
     return { ok: true, whatsappUrl: buildWhatsAppUrl(message) };
   }
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   if (!supabase) {
-    return { ok: false, error: "Banco de dados indisponivel" };
+    return { ok: false, error: "Banco de dados indisponível" };
   }
 
-  const { data: customer, error: customerError } = await supabase
-    .from("customers")
-    .insert({
-      name: data.customerName,
-      phone: data.customerPhone,
-      email: data.customerEmail || null,
-      city: data.customerCity || null,
-      state: data.customerState || null,
-    })
-    .select("id")
-    .single();
+  const customer = await upsertCustomerByPhone(supabase, {
+    customerName: data.customerName,
+    customerPhone: data.customerPhone,
+    customerEmail: data.customerEmail,
+    customerCity: data.customerCity,
+    customerState: data.customerState,
+  });
 
-  if (customerError || !customer) {
-    return { ok: false, error: "Nao foi possivel registrar o cliente" };
+  if (!customer) {
+    return { ok: false, error: "Não foi possível registrar o cliente" };
   }
 
   const { data: order, error: orderError } = await supabase
@@ -109,13 +210,13 @@ export async function createWhatsAppOrder(
     .single();
 
   if (orderError || !order) {
-    return { ok: false, error: "Nao foi possivel registrar o pedido" };
+    return { ok: false, error: "Não foi possível registrar o pedido" };
   }
 
   const message = buildOrderWhatsAppMessage({
     orderId: order.id,
     customerName: data.customerName,
-    customerPhone: data.customerPhone,
+    customerPhone: phoneDisplay,
     city: data.customerCity,
     state: data.customerState,
     product,
@@ -139,7 +240,7 @@ export async function createWhatsAppOrder(
   });
 
   if (itemError) {
-    return { ok: false, error: "Nao foi possivel registrar os itens" };
+    return { ok: false, error: "Não foi possível registrar os itens" };
   }
 
   revalidatePath("/admin/pedidos");

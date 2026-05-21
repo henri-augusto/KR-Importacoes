@@ -8,7 +8,7 @@ export function SiteFooter() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-12">
           <div>
             <p className="text-sm font-semibold text-zinc-900">
-              KR Servicos e Importacoes
+              KR Serviços e Importações
             </p>
             <p className="mt-2 max-w-sm text-sm leading-relaxed text-zinc-600">
               Perfumes importados com curadoria. Compra facilitada pelo WhatsApp.
@@ -16,16 +16,19 @@ export function SiteFooter() {
           </div>
           <div className="flex flex-col gap-3 text-sm">
             <Link href="/catalogo" className="text-zinc-600 hover:text-zinc-900">
-              Catalogo
+              Catálogo
             </Link>
             <Link href="/admin" className="text-zinc-600 hover:text-zinc-900">
-              Area administrativa
+              Área administrativa
             </Link>
           </div>
         </div>
-        <p className="mt-10 border-t border-zinc-100 pt-6 text-xs text-zinc-500">
-          {new Date().getFullYear()} KR Servicos e Importacoes. Todos os direitos reservados.
-        </p>
+        <div className="mt-10 flex flex-col gap-2 border-t border-zinc-100 pt-6 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-between">
+          <p>
+            {new Date().getFullYear()} KR Serviços e Importações. Todos os direitos reservados.
+          </p>
+          <p>Desenvolvido por Logos Agency.</p>
+        </div>
       </PageContainer>
     </footer>
   );

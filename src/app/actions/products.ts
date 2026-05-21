@@ -56,13 +56,13 @@ export async function upsertProduct(
   if (!parsed.success) {
     return {
       ok: false,
-      error: parsed.error.issues[0]?.message ?? "Dados invalidos",
+      error: parsed.error.issues[0]?.message ?? "Dados inválidos",
     };
   }
 
   const supabase = await createClient();
   if (!supabase) {
-    return { ok: false, error: "Banco de dados indisponivel" };
+    return { ok: false, error: "Banco de dados indisponível" };
   }
 
   const data = parsed.data;
@@ -104,7 +104,7 @@ export async function deleteProduct(id: string) {
   if (!isAdmin) return { ok: false, error: "Acesso negado" };
 
   const supabase = await createClient();
-  if (!supabase) return { ok: false, error: "Banco indisponivel" };
+  if (!supabase) return { ok: false, error: "Banco indisponível" };
 
   const { error } = await supabase.from("products").delete().eq("id", id);
   if (error) return { ok: false, error: error.message };
@@ -122,7 +122,7 @@ export async function updateOrderStatus(
   if (!isAdmin) return { ok: false, error: "Acesso negado" };
 
   const supabase = await createClient();
-  if (!supabase) return { ok: false, error: "Banco indisponivel" };
+  if (!supabase) return { ok: false, error: "Banco indisponível" };
 
   const { error } = await supabase
     .from("orders")

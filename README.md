@@ -1,6 +1,6 @@
-# KR Servicos e Importacoes
+# KR Serviços e Importações
 
-E-commerce de perfumes importados em Next.js, com catalogo publico, compra via WhatsApp e painel administrativo.
+E-commerce de perfumes importados em Next.js, com catálogo público, compra via WhatsApp e painel administrativo.
 
 ## Stack
 
@@ -9,15 +9,15 @@ E-commerce de perfumes importados em Next.js, com catalogo publico, compra via W
 - Tailwind CSS v4
 - Supabase (PostgreSQL + Auth)
 
-## Comecar
+## Começar
 
-1. Instale dependencias:
+1. Instale dependências:
 
 ```bash
 npm install
 ```
 
-2. Copie as variaveis de ambiente:
+2. Copie as variáveis de ambiente:
 
 ```bash
 cp .env.example .env.local
@@ -25,7 +25,7 @@ cp .env.example .env.local
 
 3. No [Supabase](https://supabase.com), crie um projeto e execute o SQL em `supabase/schema.sql` no SQL Editor.
 
-4. Crie um usuario admin em Authentication e insira o perfil:
+4. Crie um usuário admin em Authentication e insira o perfil:
 
 ```sql
 insert into public.admin_profiles (id, full_name, role)
@@ -42,29 +42,29 @@ Acesse [http://localhost:3000](http://localhost:3000).
 
 ## Rotas
 
-| Rota | Descricao |
+| Rota | Descrição |
 |------|-----------|
 | `/` | Landing page |
 | `/catalogo` | Listagem de perfumes |
 | `/catalogo/[slug]` | Detalhe e checkout WhatsApp |
 | `/admin/login` | Login administrativo |
 | `/admin` | Dashboard |
-| `/admin/produtos` | Gestao de produtos |
-| `/admin/pedidos` | Gestao de pedidos |
+| `/admin/produtos` | Gestão de produtos |
+| `/admin/pedidos` | Gestão de pedidos |
 
 ## Compra via WhatsApp
 
-O cliente escolhe o produto, informa nome e telefone (sem cadastro). O pedido e salvo no Supabase e o WhatsApp abre com a mensagem formatada.
+O cliente escolhe o produto, informa nome e telefone (sem cadastro). O pedido é salvo no Supabase e o WhatsApp abre com a mensagem formatada.
 
-Sem Supabase configurado, o site usa produtos de demonstracao e ainda abre o WhatsApp (sem persistir pedidos).
+Sem Supabase configurado, o site usa produtos de demonstração e ainda abre o WhatsApp (sem persistir pedidos).
 
 ## Mobile first
 
-Layouts pensados primeiro para celular (320–428px), com expansao progressiva em `md:` e `lg:`.
+Layouts pensados primeiro para celular (320–428px), com expansão progressiva em `md:` e `lg:`.
 
 ## Scripts
 
 - `npm run dev` — desenvolvimento
-- `npm run build` — build de producao
-- `npm run start` — servidor de producao
+- `npm run build` — build de produção
+- `npm run start` — servidor de produção
 - `npm run lint` — ESLint

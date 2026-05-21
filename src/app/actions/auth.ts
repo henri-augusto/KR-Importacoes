@@ -16,7 +16,7 @@ export async function signInAdmin(
 
   const supabase = await createClient();
   if (!supabase) {
-    return { error: "Supabase nao configurado" };
+    return { error: "Supabase não configurado" };
   }
 
   const { error } = await supabase.auth.signInWithPassword({
@@ -25,7 +25,7 @@ export async function signInAdmin(
   });
 
   if (error) {
-    return { error: "Email ou senha invalidos" };
+    return { error: "E-mail ou senha inválidos" };
   }
 
   redirect("/admin");

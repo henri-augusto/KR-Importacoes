@@ -50,6 +50,7 @@ export interface Order {
   total_cents: number;
   notes: string | null;
   whatsapp_message: string | null;
+  stock_discounted_at: string | null;
   created_at: string;
   updated_at: string;
   customer?: Customer;

@@ -14,7 +14,7 @@ export default function AdminDashboardLayout({
             Painel
           </p>
           <h1 className="mt-1 text-xl font-semibold text-zinc-900 md:text-2xl">
-            KR Servicos e Importacoes
+            KR Serviços e Importações
           </h1>
           <div className="mt-6">
             <AdminNav />

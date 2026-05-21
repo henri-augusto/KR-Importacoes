@@ -2,7 +2,7 @@
 
 import { Funnel } from "@phosphor-icons/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 
 const genders = [
   { value: "", label: "Todos" },
@@ -19,6 +19,11 @@ export function CatalogFilters() {
 
   const currentGender = searchParams.get("genero") ?? "";
   const currentSearch = searchParams.get("q") ?? "";
+  const [selectedGender, setSelectedGender] = useState(currentGender);
+
+  useEffect(() => {
+    setSelectedGender(currentGender);
+  }, [currentGender]);
 
   function applyFilters(formData: FormData) {
     const params = new URLSearchParams();
@@ -50,27 +55,32 @@ export function CatalogFilters() {
         />
       </div>
       <div className="flex flex-col gap-2">
-        <span className="text-sm font-medium text-zinc-700">Genero</span>
+        <span className="text-sm font-medium text-zinc-700">Gênero</span>
         <div className="flex flex-wrap gap-2">
-          {genders.map((g) => (
-            <label
-              key={g.value}
-              className={`inline-flex min-h-11 cursor-pointer items-center rounded-full border px-4 text-sm transition-colors ${
-                currentGender === g.value
-                  ? "border-rose-900 bg-rose-900 text-white"
-                  : "border-zinc-200 bg-white text-zinc-700"
-              }`}
-            >
-              <input
-                type="radio"
-                name="genero"
-                value={g.value}
-                defaultChecked={currentGender === g.value}
-                className="sr-only"
-              />
-              {g.label}
-            </label>
-          ))}
+          {genders.map((g) => {
+            const isSelected = selectedGender === g.value;
+
+            return (
+              <label
+                key={g.value}
+                className={`inline-flex min-h-11 cursor-pointer items-center rounded-full border px-4 text-sm font-medium transition-colors ${
+                  isSelected
+                    ? "border-rose-900 bg-rose-900 text-white shadow-sm"
+                    : "border-zinc-200 bg-white text-zinc-700 hover:border-rose-900/30 hover:bg-rose-50"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="genero"
+                  value={g.value}
+                  checked={isSelected}
+                  onChange={() => setSelectedGender(g.value)}
+                  className="sr-only"
+                />
+                {g.label}
+              </label>
+            );
+          })}
         </div>
       </div>
       <button

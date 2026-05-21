@@ -13,6 +13,12 @@
   --font-mono: var(--font-geist-mono);
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -21,4 +27,21 @@ body {
 
 ::selection {
   background: rgb(136 19 55 / 0.15);
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-fade-up {
+    animation: fade-up 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
 }

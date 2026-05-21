@@ -5,7 +5,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { getActiveProducts } from "@/lib/data/products";
 
 export const metadata = {
-  title: "Catalogo",
+  title: "Catálogo",
 };
 
 function filterProducts(
@@ -31,19 +31,20 @@ export default async function CatalogoPage({
   const params = await searchParams;
   const products = await getActiveProducts();
   const filtered = filterProducts(products, params.q, params.genero);
+  const hasProducts = products.length > 0;
 
   return (
     <PageContainer className="py-10 pb-24 md:py-14">
       <div className="mb-8 flex flex-col gap-3">
         <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
-          Catalogo
+          Catálogo
         </p>
         <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 md:text-5xl">
           Perfumes importados
         </h1>
         <p className="max-w-lg text-base text-zinc-600">
-          {filtered.length} fragrancia{filtered.length !== 1 ? "s" : ""} disponivel
-          {filtered.length !== 1 ? "is" : ""}
+          {filtered.length}{" "}
+          {filtered.length === 1 ? "fragrância disponível" : "fragrâncias disponíveis"}
         </p>
       </div>
 
@@ -58,10 +59,14 @@ export default async function CatalogoPage({
           {filtered.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-zinc-200 p-12 text-center">
               <p className="text-base font-medium text-zinc-900">
-                Nenhum perfume encontrado
+                {hasProducts
+                  ? "Nenhum perfume encontrado"
+                  : "Não há produtos no momento"}
               </p>
               <p className="mt-2 text-sm text-zinc-600">
-                Tente outros filtros ou volte mais tarde.
+                {hasProducts
+                  ? "Tente outros filtros ou volte mais tarde."
+                  : "Estamos atualizando o catálogo. Volte em breve."}
               </p>
             </div>
           ) : (

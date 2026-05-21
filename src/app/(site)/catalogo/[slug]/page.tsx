@@ -37,7 +37,7 @@ export default async function ProductPage({
           href="/catalogo"
           className="mb-6 inline-flex min-h-11 items-center text-sm text-zinc-600 hover:text-zinc-900"
         >
-          Voltar ao catalogo
+          Voltar ao catálogo
         </Link>
 
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-16">

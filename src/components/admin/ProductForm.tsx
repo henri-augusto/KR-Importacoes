@@ -23,7 +23,7 @@ export function ProductForm({ product }: { product?: Product }) {
       <Field label="Marca" name="brand" defaultValue={product?.brand} required />
       <div className="flex flex-col gap-2">
         <label htmlFor="description" className="text-sm font-medium text-zinc-700">
-          Descricao
+          Descrição
         </label>
         <textarea
           id="description"
@@ -35,7 +35,7 @@ export function ProductForm({ product }: { product?: Product }) {
       </div>
       <div className="flex flex-col gap-2">
         <label htmlFor="gender" className="text-sm font-medium text-zinc-700">
-          Genero
+          Gênero
         </label>
         <select
           id="gender"
@@ -49,7 +49,7 @@ export function ProductForm({ product }: { product?: Product }) {
           <option value="unissex">Unissex</option>
         </select>
       </div>
-      <Field label="Familia olfativa" name="family" defaultValue={product?.family ?? ""} />
+      <Field label="Família olfativa" name="family" defaultValue={product?.family ?? ""} />
       <Field
         label="Volume (ml)"
         name="volume_ml"
@@ -57,14 +57,14 @@ export function ProductForm({ product }: { product?: Product }) {
         defaultValue={product?.volume_ml?.toString() ?? ""}
       />
       <Field
-        label="Preco (centavos)"
+        label="Preço (centavos)"
         name="price_cents"
         type="number"
         defaultValue={product?.price_cents?.toString() ?? ""}
         required
       />
       <Field
-        label="Preco comparativo (centavos)"
+        label="Preço comparativo (centavos)"
         name="compare_at_price_cents"
         type="number"
         defaultValue={product?.compare_at_price_cents?.toString() ?? ""}

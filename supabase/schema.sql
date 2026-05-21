@@ -1,4 +1,4 @@
--- KR Servicos e Importacoes - schema inicial
+-- KR Serviços e Importações - schema inicial
 
 create extension if not exists "pgcrypto";
 
@@ -42,6 +42,9 @@ create table if not exists public.customers (
   created_at timestamptz not null default now()
 );
 
+-- Telefone normalizado (somente dígitos, 10–11) como chave de consulta no checkout
+create unique index if not exists customers_phone_unique_idx on public.customers (phone);
+
 create type public.order_status as enum (
   'pending',
   'whatsapp_sent',
@@ -56,9 +59,13 @@ create table if not exists public.orders (
   total_cents integer not null check (total_cents >= 0),
   notes text,
   whatsapp_message text,
+  stock_discounted_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.orders
+  add column if not exists stock_discounted_at timestamptz;
 
 create index if not exists orders_status_idx on public.orders (status);
 create index if not exists orders_created_idx on public.orders (created_at desc);
@@ -88,6 +95,40 @@ begin
 end;
 $$ language plpgsql;
 
+create or replace function public.discount_stock_on_order_confirmed()
+returns trigger as $$
+declare
+  item record;
+begin
+  if new.status = 'confirmed'
+    and new.stock_discounted_at is null
+    and old.status is distinct from 'confirmed'
+    and old.stock_discounted_at is null
+  then
+    for item in
+      select product_id, sum(quantity)::integer as quantity
+      from public.order_items
+      where order_id = new.id
+        and product_id is not null
+      group by product_id
+    loop
+      update public.products
+      set stock_quantity = stock_quantity - item.quantity
+      where id = item.product_id
+        and stock_quantity >= item.quantity;
+
+      if not found then
+        raise exception 'Estoque insuficiente para confirmar o pedido %', new.id;
+      end if;
+    end loop;
+
+    new.stock_discounted_at = now();
+  end if;
+
+  return new;
+end;
+$$ language plpgsql;
+
 drop trigger if exists products_updated_at on public.products;
 create trigger products_updated_at
   before update on public.products
@@ -97,6 +138,11 @@ drop trigger if exists orders_updated_at on public.orders;
 create trigger orders_updated_at
   before update on public.orders
   for each row execute function public.set_updated_at();
+
+drop trigger if exists orders_discount_stock_on_confirmed on public.orders;
+create trigger orders_discount_stock_on_confirmed
+  before update of status on public.orders
+  for each row execute function public.discount_stock_on_order_confirmed();
 
 alter table public.product_categories enable row level security;
 alter table public.products enable row level security;

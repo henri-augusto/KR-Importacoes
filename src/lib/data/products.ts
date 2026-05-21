@@ -1,14 +1,13 @@
-import { mockProducts } from "@/lib/data/mock-products";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import type { Product } from "@/lib/types/database";
 
 export async function getActiveProducts(): Promise<Product[]> {
   if (!isSupabaseConfigured()) {
-    return mockProducts;
+    return [];
   }
 
   const supabase = await createClient();
-  if (!supabase) return mockProducts;
+  if (!supabase) return [];
 
   const { data, error } = await supabase
     .from("products")
@@ -18,7 +17,7 @@ export async function getActiveProducts(): Promise<Product[]> {
     .order("created_at", { ascending: false });
 
   if (error || !data?.length) {
-    return mockProducts;
+    return [];
   }
 
   return data as Product[];
@@ -26,12 +25,12 @@ export async function getActiveProducts(): Promise<Product[]> {
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   if (!isSupabaseConfigured()) {
-    return mockProducts.find((p) => p.slug === slug) ?? null;
+    return null;
   }
 
   const supabase = await createClient();
   if (!supabase) {
-    return mockProducts.find((p) => p.slug === slug) ?? null;
+    return null;
   }
 
   const { data, error } = await supabase
@@ -42,7 +41,7 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     .single();
 
   if (error || !data) {
-    return mockProducts.find((p) => p.slug === slug) ?? null;
+    return null;
   }
 
   return data as Product;
@@ -50,11 +49,11 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
 
 export async function getProductById(id: string): Promise<Product | null> {
   if (!isSupabaseConfigured()) {
-    return mockProducts.find((p) => p.id === id) ?? null;
+    return null;
   }
 
   const supabase = await createClient();
-  if (!supabase) return mockProducts.find((p) => p.id === id) ?? null;
+  if (!supabase) return null;
 
   const { data, error } = await supabase
     .from("products")
@@ -68,11 +67,11 @@ export async function getProductById(id: string): Promise<Product | null> {
 
 export async function getAllProductsAdmin(): Promise<Product[]> {
   if (!isSupabaseConfigured()) {
-    return mockProducts;
+    return [];
   }
 
   const supabase = await createClient();
-  if (!supabase) return mockProducts;
+  if (!supabase) return [];
 
   const { data, error } = await supabase
     .from("products")

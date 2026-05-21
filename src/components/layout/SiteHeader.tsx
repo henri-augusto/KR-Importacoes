@@ -2,8 +2,7 @@ import Link from "next/link";
 import { MobileNav } from "@/components/layout/MobileNav";
 
 const links = [
-  { href: "/", label: "Inicio" },
-  { href: "/catalogo", label: "Catalogo" },
+  { href: "/", label: "Início" },
 ];
 
 export function SiteHeader() {
@@ -12,10 +11,10 @@ export function SiteHeader() {
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 md:h-16">
         <Link href="/" className="flex flex-col leading-none">
           <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
-            Importacao premium
+            Importação premium
           </span>
           <span className="text-sm font-semibold tracking-tight text-zinc-900 md:text-base">
-            KR Servicos e Importacoes
+            KR Serviços e Importações
           </span>
         </Link>
 
@@ -33,7 +32,7 @@ export function SiteHeader() {
             href="/catalogo"
             className="inline-flex min-h-11 items-center rounded-full bg-rose-900 px-5 text-sm font-medium text-white transition-transform active:scale-[0.98]"
           >
-            Ver catalogo
+            Ver catálogo
           </Link>
         </nav>
 
