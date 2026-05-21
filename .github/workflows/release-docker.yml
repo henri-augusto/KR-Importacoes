@@ -13,10 +13,11 @@ jobs:
   build-and-push:
     name: Build and push image
     runs-on: ubuntu-latest
+    environment: production
     env:
-      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-      NEXT_PUBLIC_WHATSAPP_NUMBER: ${{ secrets.NEXT_PUBLIC_WHATSAPP_NUMBER }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      NEXT_PUBLIC_WHATSAPP_NUMBER: ${{ vars.NEXT_PUBLIC_WHATSAPP_NUMBER }}
 
     steps:
       - name: Checkout repository
@@ -47,11 +48,11 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest
 
-      - name: Validate required build secrets
+      - name: Validate required GitHub variables
         run: |
-          test -n "$NEXT_PUBLIC_SUPABASE_URL" || (echo "::error::Missing secret NEXT_PUBLIC_SUPABASE_URL" && exit 1)
-          test -n "$NEXT_PUBLIC_SUPABASE_ANON_KEY" || (echo "::error::Missing secret NEXT_PUBLIC_SUPABASE_ANON_KEY" && exit 1)
-          test -n "$NEXT_PUBLIC_WHATSAPP_NUMBER" || (echo "::error::Missing secret NEXT_PUBLIC_WHATSAPP_NUMBER" && exit 1)
+          test -n "$NEXT_PUBLIC_SUPABASE_URL" || (echo "::error::Missing GitHub variable NEXT_PUBLIC_SUPABASE_URL" && exit 1)
+          test -n "$NEXT_PUBLIC_SUPABASE_ANON_KEY" || (echo "::error::Missing GitHub variable NEXT_PUBLIC_SUPABASE_ANON_KEY" && exit 1)
+          test -n "$NEXT_PUBLIC_WHATSAPP_NUMBER" || (echo "::error::Missing GitHub variable NEXT_PUBLIC_WHATSAPP_NUMBER" && exit 1)
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
