@@ -14,11 +14,8 @@ export function MobileNav({
   links: { href: string; label: string }[];
 }) {
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   const close = () => setOpen(false);
-
-  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!open) return;
@@ -39,7 +36,7 @@ export function MobileNav({
   }, [open]);
 
   const menu =
-    open && mounted
+    open
       ? createPortal(
           <div
             className="fixed inset-0 z-[100] md:hidden"

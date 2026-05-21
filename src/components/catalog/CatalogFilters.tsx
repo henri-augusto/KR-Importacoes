@@ -2,7 +2,7 @@
 
 import { Funnel } from "@phosphor-icons/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 
 const genders = [
   { value: "", label: "Todos" },
@@ -20,10 +20,12 @@ export function CatalogFilters() {
   const currentGender = searchParams.get("genero") ?? "";
   const currentSearch = searchParams.get("q") ?? "";
   const [selectedGender, setSelectedGender] = useState(currentGender);
+  const [lastGender, setLastGender] = useState(currentGender);
 
-  useEffect(() => {
+  if (lastGender !== currentGender) {
+    setLastGender(currentGender);
     setSelectedGender(currentGender);
-  }, [currentGender]);
+  }
 
   function applyFilters(formData: FormData) {
     const params = new URLSearchParams();

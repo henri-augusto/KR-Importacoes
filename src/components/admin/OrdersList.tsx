@@ -1,10 +1,30 @@
 "use client";
 
+import { useState } from "react";
 import { updateOrderStatus } from "@/app/actions/products";
 import type { Order } from "@/lib/types/database";
 import { formatCurrency, formatOrderStatus } from "@/lib/utils/format";
 
 export function OrdersList({ orders }: { orders: Order[] }) {
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleStatusChange(
+    orderId: string,
+    status: "pending" | "whatsapp_sent" | "confirmed" | "cancelled",
+  ) {
+    setError(null);
+
+    try {
+      const result = await updateOrderStatus(orderId, status);
+      if (!result.ok) {
+        setError(result.error ?? "Não foi possível atualizar o pedido.");
+      }
+    } catch (error) {
+      console.error("[orders] updateOrderStatus", error);
+      setError("Não foi possível atualizar o pedido. Tente novamente.");
+    }
+  }
+
   if (!orders.length) {
     return (
       <div className="rounded-2xl border border-dashed border-zinc-200 p-10 text-center">
@@ -15,6 +35,11 @@ export function OrdersList({ orders }: { orders: Order[] }) {
 
   return (
     <div className="flex flex-col gap-4">
+      {error && (
+        <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">
+          {error}
+        </p>
+      )}
       {orders.map((order) => (
         <article
           key={order.id}
@@ -68,7 +93,7 @@ export function OrdersList({ orders }: { orders: Order[] }) {
                 <button
                   key={status}
                   type="button"
-                  onClick={() => updateOrderStatus(order.id, status)}
+                  onClick={() => void handleStatusChange(order.id, status)}
                   className={`min-h-10 rounded-full px-3 text-xs font-medium transition-colors ${
                     order.status === status
                       ? "bg-zinc-900 text-white"

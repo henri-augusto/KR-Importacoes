@@ -60,11 +60,6 @@ export async function upsertProduct(
     };
   }
 
-  const supabase = await createClient();
-  if (!supabase) {
-    return { ok: false, error: "Banco de dados indisponível" };
-  }
-
   const data = parsed.data;
   const slug = slugify(`${data.brand}-${data.name}`);
   const payload = {
@@ -83,15 +78,28 @@ export async function upsertProduct(
     is_active: data.is_active ?? true,
   };
 
-  if (data.id) {
-    const { error } = await supabase
-      .from("products")
-      .update(payload)
-      .eq("id", data.id);
-    if (error) return { ok: false, error: error.message };
-  } else {
-    const { error } = await supabase.from("products").insert(payload);
-    if (error) return { ok: false, error: error.message };
+  try {
+    const supabase = await createClient();
+    if (!supabase) {
+      return { ok: false, error: "Banco de dados indisponível" };
+    }
+
+    if (data.id) {
+      const { error } = await supabase
+        .from("products")
+        .update(payload)
+        .eq("id", data.id);
+      if (error) return { ok: false, error: error.message };
+    } else {
+      const { error } = await supabase.from("products").insert(payload);
+      if (error) return { ok: false, error: error.message };
+    }
+  } catch (error) {
+    console.error("[products] upsertProduct", error);
+    return {
+      ok: false,
+      error: "Não foi possível salvar o produto. Tente novamente.",
+    };
   }
 
   revalidatePath("/catalogo");
@@ -103,11 +111,19 @@ export async function deleteProduct(id: string) {
   const { isAdmin } = await getAdminSession();
   if (!isAdmin) return { ok: false, error: "Acesso negado" };
 
-  const supabase = await createClient();
-  if (!supabase) return { ok: false, error: "Banco indisponível" };
+  try {
+    const supabase = await createClient();
+    if (!supabase) return { ok: false, error: "Banco indisponível" };
 
-  const { error } = await supabase.from("products").delete().eq("id", id);
-  if (error) return { ok: false, error: error.message };
+    const { error } = await supabase.from("products").delete().eq("id", id);
+    if (error) return { ok: false, error: error.message };
+  } catch (error) {
+    console.error("[products] deleteProduct", error);
+    return {
+      ok: false,
+      error: "Não foi possível excluir o produto. Tente novamente.",
+    };
+  }
 
   revalidatePath("/catalogo");
   revalidatePath("/admin/produtos");
@@ -121,15 +137,23 @@ export async function updateOrderStatus(
   const { isAdmin } = await getAdminSession();
   if (!isAdmin) return { ok: false, error: "Acesso negado" };
 
-  const supabase = await createClient();
-  if (!supabase) return { ok: false, error: "Banco indisponível" };
+  try {
+    const supabase = await createClient();
+    if (!supabase) return { ok: false, error: "Banco indisponível" };
 
-  const { error } = await supabase
-    .from("orders")
-    .update({ status })
-    .eq("id", orderId);
+    const { error } = await supabase
+      .from("orders")
+      .update({ status })
+      .eq("id", orderId);
 
-  if (error) return { ok: false, error: error.message };
+    if (error) return { ok: false, error: error.message };
+  } catch (error) {
+    console.error("[products] updateOrderStatus", error);
+    return {
+      ok: false,
+      error: "Não foi possível atualizar o status. Tente novamente.",
+    };
+  }
 
   revalidatePath("/admin/pedidos");
   return { ok: true };

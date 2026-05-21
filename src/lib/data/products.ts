@@ -1,26 +1,36 @@
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import type { Product } from "@/lib/types/database";
 
+function logProductsError(context: string, error: unknown) {
+  console.error(`[products] ${context}`, error);
+}
+
 export async function getActiveProducts(): Promise<Product[]> {
   if (!isSupabaseConfigured()) {
     return [];
   }
 
-  const supabase = await createClient();
-  if (!supabase) return [];
+  try {
+    const supabase = await createClient();
+    if (!supabase) return [];
 
-  const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .eq("is_active", true)
-    .order("is_featured", { ascending: false })
-    .order("created_at", { ascending: false });
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .eq("is_active", true)
+      .order("is_featured", { ascending: false })
+      .order("created_at", { ascending: false });
 
-  if (error || !data?.length) {
+    if (error || !data?.length) {
+      if (error) logProductsError("getActiveProducts", error);
+      return [];
+    }
+
+    return data as Product[];
+  } catch (error) {
+    logProductsError("getActiveProducts", error);
     return [];
   }
-
-  return data as Product[];
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
@@ -28,23 +38,29 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     return null;
   }
 
-  const supabase = await createClient();
-  if (!supabase) {
+  try {
+    const supabase = await createClient();
+    if (!supabase) {
+      return null;
+    }
+
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .eq("slug", slug)
+      .eq("is_active", true)
+      .single();
+
+    if (error || !data) {
+      if (error) logProductsError("getProductBySlug", error);
+      return null;
+    }
+
+    return data as Product;
+  } catch (error) {
+    logProductsError("getProductBySlug", error);
     return null;
   }
-
-  const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .eq("slug", slug)
-    .eq("is_active", true)
-    .single();
-
-  if (error || !data) {
-    return null;
-  }
-
-  return data as Product;
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
@@ -52,17 +68,25 @@ export async function getProductById(id: string): Promise<Product | null> {
     return null;
   }
 
-  const supabase = await createClient();
-  if (!supabase) return null;
+  try {
+    const supabase = await createClient();
+    if (!supabase) return null;
 
-  const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .eq("id", id)
-    .single();
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .eq("id", id)
+      .single();
 
-  if (error || !data) return null;
-  return data as Product;
+    if (error || !data) {
+      if (error) logProductsError("getProductById", error);
+      return null;
+    }
+    return data as Product;
+  } catch (error) {
+    logProductsError("getProductById", error);
+    return null;
+  }
 }
 
 export async function getAllProductsAdmin(): Promise<Product[]> {
@@ -70,14 +94,22 @@ export async function getAllProductsAdmin(): Promise<Product[]> {
     return [];
   }
 
-  const supabase = await createClient();
-  if (!supabase) return [];
+  try {
+    const supabase = await createClient();
+    if (!supabase) return [];
 
-  const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .order("created_at", { ascending: false });
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-  if (error || !data) return [];
-  return data as Product[];
+    if (error || !data) {
+      if (error) logProductsError("getAllProductsAdmin", error);
+      return [];
+    }
+    return data as Product[];
+  } catch (error) {
+    logProductsError("getAllProductsAdmin", error);
+    return [];
+  }
 }

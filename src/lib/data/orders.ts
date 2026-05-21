@@ -4,20 +4,28 @@ import type { Order } from "@/lib/types/database";
 export async function getOrdersAdmin(): Promise<Order[]> {
   if (!isSupabaseConfigured()) return [];
 
-  const supabase = await createClient();
-  if (!supabase) return [];
+  try {
+    const supabase = await createClient();
+    if (!supabase) return [];
 
-  const { data, error } = await supabase
-    .from("orders")
-    .select(
-      `
-      *,
-      customer:customers(*),
-      order_items(*)
-    `,
-    )
-    .order("created_at", { ascending: false });
+    const { data, error } = await supabase
+      .from("orders")
+      .select(
+        `
+        *,
+        customer:customers(*),
+        order_items(*)
+      `,
+      )
+      .order("created_at", { ascending: false });
 
-  if (error || !data) return [];
-  return data as Order[];
+    if (error || !data) {
+      if (error) console.error("[orders] getOrdersAdmin", error);
+      return [];
+    }
+    return data as Order[];
+  } catch (error) {
+    console.error("[orders] getOrdersAdmin", error);
+    return [];
+  }
 }

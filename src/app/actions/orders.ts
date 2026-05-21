@@ -65,25 +65,31 @@ export async function lookupCustomerByPhone(
     return { found: false };
   }
 
-  const { data, error } = await supabase
-    .from("customers")
-    .select("name, email, city, state")
-    .eq("phone", normalized)
-    .maybeSingle();
+  try {
+    const { data, error } = await supabase
+      .from("customers")
+      .select("name, email, city, state")
+      .eq("phone", normalized)
+      .maybeSingle();
 
-  if (error || !data) {
+    if (error || !data) {
+      if (error) console.error("[orders] lookupCustomerByPhone", error);
+      return { found: false };
+    }
+
+    return {
+      found: true,
+      customer: {
+        name: data.name,
+        email: data.email,
+        city: data.city,
+        state: data.state,
+      },
+    };
+  } catch (error) {
+    console.error("[orders] lookupCustomerByPhone", error);
     return { found: false };
   }
-
-  return {
-    found: true,
-    customer: {
-      name: data.name,
-      email: data.email,
-      city: data.city,
-      state: data.state,
-    },
-  };
 }
 
 async function upsertCustomerByPhone(
@@ -98,40 +104,56 @@ async function upsertCustomerByPhone(
 ): Promise<{ id: string } | null> {
   const phone = data.customerPhone;
 
-  const { data: existing } = await supabase
-    .from("customers")
-    .select("id")
-    .eq("phone", phone)
-    .maybeSingle();
-
-  const payload = {
-    name: data.customerName,
-    phone,
-    email: data.customerEmail || null,
-    city: data.customerCity || null,
-    state: data.customerState?.toUpperCase() || null,
-  };
-
-  if (existing) {
-    const { data: updated, error } = await supabase
+  try {
+    const { data: existing, error: lookupError } = await supabase
       .from("customers")
-      .update(payload)
-      .eq("id", existing.id)
+      .select("id")
+      .eq("phone", phone)
+      .maybeSingle();
+
+    if (lookupError) {
+      console.error("[orders] upsertCustomerByPhone lookup", lookupError);
+      return null;
+    }
+
+    const payload = {
+      name: data.customerName,
+      phone,
+      email: data.customerEmail || null,
+      city: data.customerCity || null,
+      state: data.customerState?.toUpperCase() || null,
+    };
+
+    if (existing) {
+      const { data: updated, error } = await supabase
+        .from("customers")
+        .update(payload)
+        .eq("id", existing.id)
+        .select("id")
+        .single();
+
+      if (error || !updated) {
+        if (error) console.error("[orders] upsertCustomerByPhone update", error);
+        return null;
+      }
+      return updated;
+    }
+
+    const { data: created, error } = await supabase
+      .from("customers")
+      .insert(payload)
       .select("id")
       .single();
 
-    if (error || !updated) return null;
-    return updated;
+    if (error || !created) {
+      if (error) console.error("[orders] upsertCustomerByPhone insert", error);
+      return null;
+    }
+    return created;
+  } catch (error) {
+    console.error("[orders] upsertCustomerByPhone", error);
+    return null;
   }
-
-  const { data: created, error } = await supabase
-    .from("customers")
-    .insert(payload)
-    .select("id")
-    .single();
-
-  if (error || !created) return null;
-  return created;
 }
 
 export async function createWhatsAppOrder(
@@ -187,63 +209,77 @@ export async function createWhatsAppOrder(
     return { ok: false, error: "Banco de dados indisponível" };
   }
 
-  const customer = await upsertCustomerByPhone(supabase, {
-    customerName: data.customerName,
-    customerPhone: data.customerPhone,
-    customerEmail: data.customerEmail,
-    customerCity: data.customerCity,
-    customerState: data.customerState,
-  });
+  try {
+    const customer = await upsertCustomerByPhone(supabase, {
+      customerName: data.customerName,
+      customerPhone: data.customerPhone,
+      customerEmail: data.customerEmail,
+      customerCity: data.customerCity,
+      customerState: data.customerState,
+    });
 
-  if (!customer) {
-    return { ok: false, error: "Não foi possível registrar o cliente" };
+    if (!customer) {
+      return { ok: false, error: "Não foi possível registrar o cliente" };
+    }
+
+    const { data: order, error: orderError } = await supabase
+      .from("orders")
+      .insert({
+        customer_id: customer.id,
+        status: "pending",
+        total_cents: totalCents,
+      })
+      .select("id")
+      .single();
+
+    if (orderError || !order) {
+      if (orderError) console.error("[orders] createWhatsAppOrder order", orderError);
+      return { ok: false, error: "Não foi possível registrar o pedido" };
+    }
+
+    const message = buildOrderWhatsAppMessage({
+      orderId: order.id,
+      customerName: data.customerName,
+      customerPhone: phoneDisplay,
+      city: data.customerCity,
+      state: data.customerState,
+      product,
+      quantity: data.quantity,
+      totalCents,
+    });
+
+    const { error: statusError } = await supabase
+      .from("orders")
+      .update({ status: "whatsapp_sent", whatsapp_message: message })
+      .eq("id", order.id);
+
+    if (statusError) {
+      console.error("[orders] createWhatsAppOrder status", statusError);
+    }
+
+    const isMockProduct = data.productId.startsWith("mock-");
+
+    const { error: itemError } = await supabase.from("order_items").insert({
+      order_id: order.id,
+      product_id: isMockProduct ? null : data.productId,
+      product_name_snapshot: `${data.productBrand} - ${data.productName}`,
+      quantity: data.quantity,
+      unit_price_cents: data.unitPriceCents,
+    });
+
+    if (itemError) {
+      console.error("[orders] createWhatsAppOrder item", itemError);
+      return { ok: false, error: "Não foi possível registrar os itens" };
+    }
+
+    revalidatePath("/admin/pedidos");
+
+    return { ok: true, whatsappUrl: buildWhatsAppUrl(message) };
+  } catch (error) {
+    console.error("[orders] createWhatsAppOrder", error);
+    return {
+      ok: false,
+      error: "Não foi possível finalizar agora. Tente novamente em instantes.",
+    };
   }
-
-  const { data: order, error: orderError } = await supabase
-    .from("orders")
-    .insert({
-      customer_id: customer.id,
-      status: "pending",
-      total_cents: totalCents,
-    })
-    .select("id")
-    .single();
-
-  if (orderError || !order) {
-    return { ok: false, error: "Não foi possível registrar o pedido" };
-  }
-
-  const message = buildOrderWhatsAppMessage({
-    orderId: order.id,
-    customerName: data.customerName,
-    customerPhone: phoneDisplay,
-    city: data.customerCity,
-    state: data.customerState,
-    product,
-    quantity: data.quantity,
-    totalCents,
-  });
-
-  await supabase
-    .from("orders")
-    .update({ status: "whatsapp_sent", whatsapp_message: message })
-    .eq("id", order.id);
-
-  const isMockProduct = data.productId.startsWith("mock-");
-
-  const { error: itemError } = await supabase.from("order_items").insert({
-    order_id: order.id,
-    product_id: isMockProduct ? null : data.productId,
-    product_name_snapshot: `${data.productBrand} - ${data.productName}`,
-    quantity: data.quantity,
-    unit_price_cents: data.unitPriceCents,
-  });
-
-  if (itemError) {
-    return { ok: false, error: "Não foi possível registrar os itens" };
-  }
-
-  revalidatePath("/admin/pedidos");
-
-  return { ok: true, whatsappUrl: buildWhatsAppUrl(message) };
 }

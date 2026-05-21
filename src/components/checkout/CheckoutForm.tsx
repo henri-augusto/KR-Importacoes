@@ -57,23 +57,37 @@ export function CheckoutForm({
       return;
     }
 
+    let ignore = false;
+
     const timeout = setTimeout(async () => {
       setLookupStatus("loading");
-      const result = await lookupCustomerByPhone(normalizedPhone);
-      lastLookupPhone.current = normalizedPhone;
+      try {
+        const result = await lookupCustomerByPhone(normalizedPhone);
+        if (ignore) return;
 
-      if (result.found && result.customer) {
-        setCustomerName(result.customer.name);
-        setCustomerEmail(result.customer.email ?? "");
-        setCustomerCity(result.customer.city ?? "");
-        setCustomerState(result.customer.state ?? "");
-        setLookupStatus("found");
-      } else {
-        setLookupStatus("not_found");
+        lastLookupPhone.current = normalizedPhone;
+
+        if (result.found && result.customer) {
+          setCustomerName(result.customer.name);
+          setCustomerEmail(result.customer.email ?? "");
+          setCustomerCity(result.customer.city ?? "");
+          setCustomerState(result.customer.state ?? "");
+          setLookupStatus("found");
+        } else {
+          setLookupStatus("not_found");
+        }
+      } catch (error) {
+        console.error("[checkout] lookupCustomerByPhone", error);
+        if (!ignore) {
+          setLookupStatus("not_found");
+        }
       }
     }, 450);
 
-    return () => clearTimeout(timeout);
+    return () => {
+      ignore = true;
+      clearTimeout(timeout);
+    };
   }, [phone, phoneReady, normalizedPhone]);
 
   useEffect(() => {

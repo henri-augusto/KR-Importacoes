@@ -1,11 +1,28 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { deleteProduct } from "@/app/actions/products";
 import type { Product } from "@/lib/types/database";
 import { formatCurrency } from "@/lib/utils/format";
 
 export function ProductsTable({ products }: { products: Product[] }) {
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleDeleteProduct(id: string) {
+    setError(null);
+
+    try {
+      const result = await deleteProduct(id);
+      if (!result.ok) {
+        setError(result.error ?? "Não foi possível excluir o produto.");
+      }
+    } catch (error) {
+      console.error("[products] deleteProduct", error);
+      setError("Não foi possível excluir o produto. Tente novamente.");
+    }
+  }
+
   if (!products.length) {
     return (
       <div className="rounded-2xl border border-dashed border-zinc-200 p-10 text-center">
@@ -22,6 +39,11 @@ export function ProductsTable({ products }: { products: Product[] }) {
 
   return (
     <>
+      {error && (
+        <p className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">
+          {error}
+        </p>
+      )}
       <div className="hidden overflow-hidden rounded-2xl border border-zinc-200/60 md:block">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-zinc-100 bg-zinc-50/80">
@@ -63,7 +85,7 @@ export function ProductsTable({ products }: { products: Product[] }) {
                     </Link>
                     <button
                       type="button"
-                      onClick={() => deleteProduct(p.id)}
+                      onClick={() => void handleDeleteProduct(p.id)}
                       className="text-red-700 hover:text-red-900"
                     >
                       Excluir
@@ -101,7 +123,7 @@ export function ProductsTable({ products }: { products: Product[] }) {
               </Link>
               <button
                 type="button"
-                onClick={() => deleteProduct(p.id)}
+                onClick={() => void handleDeleteProduct(p.id)}
                 className="min-h-10 flex-1 rounded-full border border-red-200 text-center text-sm text-red-700 leading-10"
               >
                 Excluir

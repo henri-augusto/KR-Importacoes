@@ -1,11 +1,19 @@
 import { AdminNav } from "@/components/admin/AdminNav";
+import { ErrorState } from "@/components/layout/ErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { getAdminSession } from "@/lib/auth/admin";
+import { isSupabaseConfigured } from "@/lib/supabase/server";
 
-export default function AdminDashboardLayout({
+export default async function AdminDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const shouldCheckRole = isSupabaseConfigured();
+  const { isAdmin } = shouldCheckRole
+    ? await getAdminSession()
+    : { isAdmin: true };
+
   return (
     <div className="min-h-[100dvh] bg-zinc-50">
       <PageContainer className="py-6 md:py-10">
@@ -20,7 +28,18 @@ export default function AdminDashboardLayout({
             <AdminNav />
           </div>
         </div>
-        {children}
+        {isAdmin ? (
+          children
+        ) : (
+          <ErrorState
+            statusCode="401"
+            eyebrow="Acesso negado"
+            title="Você não tem permissão para acessar o painel"
+            description="Entre com uma conta administradora para gerenciar produtos e pedidos."
+            primaryAction={{ href: "/admin/login", label: "Entrar novamente" }}
+            secondaryAction={{ href: "/", label: "Voltar ao site" }}
+          />
+        )}
       </PageContainer>
     </div>
   );
