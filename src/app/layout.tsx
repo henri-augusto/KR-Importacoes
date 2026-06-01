@@ -14,11 +14,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "KR Serviços e Importações | Perfumes Importados",
-    template: "%s | KR Serviços e Importações",
+    default: "KR Importações | Perfumes Importados",
+    template: "%s | KR Importações",
   },
   description:
-    "Perfumes importados com curadoria. Compre pelo catálogo e finalize seu pedido no WhatsApp.",
+    "Perfumes importados. Compre e adquira seus perfumes importados de forma fácil e segura.",
 };
 
 export default function RootLayout({

@@ -15,7 +15,7 @@ export default async function HomePage() {
         <PageContainer className="grid min-h-[100dvh] grid-cols-1 items-center gap-10 py-12 md:grid-cols-2 md:gap-16 md:py-20">
           <div className="flex flex-col gap-6">
             <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-rose-900">
-              KR Serviços e Importações
+              KR Imports
             </p>
             <h1 className="text-3xl font-semibold leading-[1.05] tracking-tighter text-zinc-900 md:text-6xl">
               Perfumes importados com identidade e presença.
@@ -139,7 +139,7 @@ export default async function HomePage() {
             >
               <div className="relative overflow-hidden rounded-[2rem] border border-zinc-200/70 bg-[#faf9f7] p-6 shadow-[0_24px_60px_-36px_rgba(136,19,55,0.32)] md:-mt-6 md:p-8">
                 <Image
-                  src="/krservimpor_logomarca.jpeg"
+                  src="/krservimpor_logomarca.png"
                   alt="Logomarca KR Serviços e Importações"
                   width={640}
                   height={360}

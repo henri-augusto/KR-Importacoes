@@ -14,7 +14,7 @@ export function SiteHeader() {
             Importação premium
           </span>
           <span className="text-sm font-semibold tracking-tight text-zinc-900 md:text-base">
-            KR Serviços e Importações
+            KR Imports
           </span>
         </Link>
 
