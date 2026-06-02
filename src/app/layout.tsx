@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "KR Importações | Perfumes Importados",
+    default: "KR Imports | Perfumes Importados",
     template: "%s | KR Importações",
   },
   description:

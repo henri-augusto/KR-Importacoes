@@ -78,7 +78,7 @@ export function MobileNav({
                   </Link>
                 ))}
 
-                <div className="mt-auto pt-4">
+                <div className="pt-4">
                   <Link
                     href="/catalogo"
                     onClick={close}
