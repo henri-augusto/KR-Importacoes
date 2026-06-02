@@ -9,8 +9,8 @@ services:
       context: .
       dockerfile: Dockerfile
       args: *app-build-args
-    image: kr-importacoes:latest
-    container_name: kr-importacoes
+    image: kr-imports:latest
+    container_name: kr-imports
     restart: unless-stopped
     ports:
       - "6000:3000"
