@@ -16,9 +16,9 @@ jobs:
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
       NEXT_PUBLIC_WHATSAPP_NUMBER: ${{ vars.NEXT_PUBLIC_WHATSAPP_NUMBER }}
 
-  permissions:
-    contents: read
-    packages: write
+    permissions:
+      contents: read
+      packages: write
     
     steps:
       - name: Checkout repository
