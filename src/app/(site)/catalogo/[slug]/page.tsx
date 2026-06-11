@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductPurchase } from "@/components/checkout/ProductPurchase";
-import { StickyWhatsAppCta } from "@/components/checkout/StickyWhatsAppCta";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { getProductBySlug } from "@/lib/data/products";
 import { formatCurrency } from "@/lib/utils/format";
@@ -31,8 +30,7 @@ export default async function ProductPage({
   if (!product) notFound();
 
   return (
-    <>
-      <PageContainer className="py-8 pb-32 md:py-14 md:pb-14">
+    <PageContainer className="py-8 md:py-14">
         <Link
           href="/catalogo"
           className="mb-6 inline-flex min-h-11 items-center text-sm text-zinc-600 hover:text-zinc-900"
@@ -107,18 +105,12 @@ export default async function ProductPage({
           </div>
         </div>
 
-        <div
-          id="checkout"
-          className="mt-10 scroll-mt-24 rounded-2xl border border-zinc-200/60 bg-white p-6 md:hidden"
-        >
+        <div className="mt-10 rounded-2xl border border-zinc-200/60 bg-white p-6 md:hidden">
           <h2 className="mb-4 text-lg font-semibold text-zinc-900">
             Finalizar pedido
           </h2>
           <ProductPurchase product={product} />
         </div>
-      </PageContainer>
-
-      <StickyWhatsAppCta href="#checkout" />
-    </>
+    </PageContainer>
   );
 }
