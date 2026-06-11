@@ -94,6 +94,40 @@ export default async function HomePage() {
       </section>
 
       <section
+        id="entrega"
+        className="border-t border-zinc-200/60 py-16 md:py-24"
+      >
+        <PageContainer>
+          <div className="mb-10 flex flex-col gap-3">
+            <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+              Entrega
+            </p>
+            <h2 className="text-2xl font-semibold tracking-tight text-zinc-900 md:text-4xl">
+              Entrega grátis na região
+            </h2>
+            <p className="max-w-[65ch] text-base leading-relaxed text-zinc-600">
+              Nas cidades abaixo, a entrega é por nossa conta — sem custo
+              adicional após a confirmação do pedido.
+            </p>
+          </div>
+          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-6">
+            {[
+              "Piracicaba - SP",
+              "Rio das Pedras - SP",
+              "Saltinho - SP",
+            ].map((city) => (
+              <li
+                key={city}
+                className="rounded-2xl border border-zinc-200/70 bg-white px-6 py-5 text-base font-medium text-zinc-900"
+              >
+                {city}
+              </li>
+            ))}
+          </ul>
+        </PageContainer>
+      </section>
+
+      <section
         id="como-funciona"
         className="border-t border-zinc-200/60 bg-white py-16 md:py-20"
       >
