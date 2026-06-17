@@ -18,8 +18,7 @@ export async function getActiveProducts(): Promise<Product[]> {
       .from("products")
       .select("*")
       .eq("is_active", true)
-      .order("is_featured", { ascending: false })
-      .order("created_at", { ascending: false });
+      .order("sort_order", { ascending: true });
 
     if (error || !data?.length) {
       if (error) logProductsError("getActiveProducts", error);
@@ -101,7 +100,7 @@ export async function getAllProductsAdmin(): Promise<Product[]> {
     const { data, error } = await supabase
       .from("products")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("sort_order", { ascending: true });
 
     if (error || !data) {
       if (error) logProductsError("getAllProductsAdmin", error);

@@ -91,7 +91,18 @@ export async function upsertProduct(
         .eq("id", data.id);
       if (error) return { ok: false, error: error.message };
     } else {
-      const { error } = await supabase.from("products").insert(payload);
+      const { data: maxRow } = await supabase
+        .from("products")
+        .select("sort_order")
+        .order("sort_order", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const nextSortOrder = (maxRow?.sort_order ?? -1) + 1;
+
+      const { error } = await supabase
+        .from("products")
+        .insert({ ...payload, sort_order: nextSortOrder });
       if (error) return { ok: false, error: error.message };
     }
   } catch (error) {
@@ -103,8 +114,82 @@ export async function upsertProduct(
   }
 
   revalidatePath("/catalogo");
+  revalidatePath("/");
   revalidatePath("/admin/produtos");
   redirect("/admin/produtos");
+}
+
+export type ReorderProductResult = {
+  ok: boolean;
+  error?: string;
+};
+
+export async function reorderProduct(
+  productId: string,
+  direction: "up" | "down",
+): Promise<ReorderProductResult> {
+  const { isAdmin } = await getAdminSession();
+  if (!isAdmin) return { ok: false, error: "Acesso negado" };
+
+  try {
+    const supabase = await createClient();
+    if (!supabase) return { ok: false, error: "Banco indisponível" };
+
+    const { data: current, error: currentError } = await supabase
+      .from("products")
+      .select("id, sort_order")
+      .eq("id", productId)
+      .single();
+
+    if (currentError || !current) {
+      return { ok: false, error: "Produto não encontrado" };
+    }
+
+    const { data: neighbor, error: neighborError } =
+      direction === "up"
+        ? await supabase
+            .from("products")
+            .select("id, sort_order")
+            .lt("sort_order", current.sort_order)
+            .order("sort_order", { ascending: false })
+            .limit(1)
+            .maybeSingle()
+        : await supabase
+            .from("products")
+            .select("id, sort_order")
+            .gt("sort_order", current.sort_order)
+            .order("sort_order", { ascending: true })
+            .limit(1)
+            .maybeSingle();
+
+    if (neighborError) return { ok: false, error: neighborError.message };
+    if (!neighbor) return { ok: true };
+
+    const { error: updateCurrentError } = await supabase
+      .from("products")
+      .update({ sort_order: neighbor.sort_order })
+      .eq("id", current.id);
+
+    if (updateCurrentError) return { ok: false, error: updateCurrentError.message };
+
+    const { error: updateNeighborError } = await supabase
+      .from("products")
+      .update({ sort_order: current.sort_order })
+      .eq("id", neighbor.id);
+
+    if (updateNeighborError) return { ok: false, error: updateNeighborError.message };
+  } catch (error) {
+    console.error("[products] reorderProduct", error);
+    return {
+      ok: false,
+      error: "Não foi possível reordenar o produto. Tente novamente.",
+    };
+  }
+
+  revalidatePath("/catalogo");
+  revalidatePath("/");
+  revalidatePath("/admin/produtos");
+  return { ok: true };
 }
 
 export async function deleteProduct(id: string) {
@@ -126,6 +211,7 @@ export async function deleteProduct(id: string) {
   }
 
   revalidatePath("/catalogo");
+  revalidatePath("/");
   revalidatePath("/admin/produtos");
   return { ok: true };
 }

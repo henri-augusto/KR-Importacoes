@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { deleteProduct } from "@/app/actions/products";
+import { deleteProduct, reorderProduct } from "@/app/actions/products";
 import type { Product } from "@/lib/types/database";
 import { formatCurrency } from "@/lib/utils/format";
 
+type ReorderDirection = "up" | "down";
+
 export function ProductsTable({ products }: { products: Product[] }) {
   const [error, setError] = useState<string | null>(null);
+  const [reorderingId, setReorderingId] = useState<string | null>(null);
 
   async function handleDeleteProduct(id: string) {
     setError(null);
@@ -21,6 +24,56 @@ export function ProductsTable({ products }: { products: Product[] }) {
       console.error("[products] deleteProduct", error);
       setError("Não foi possível excluir o produto. Tente novamente.");
     }
+  }
+
+  async function handleReorder(productId: string, direction: ReorderDirection) {
+    setError(null);
+    setReorderingId(productId);
+
+    try {
+      const result = await reorderProduct(productId, direction);
+      if (!result.ok) {
+        setError(result.error ?? "Não foi possível reordenar o produto.");
+      }
+    } catch (error) {
+      console.error("[products] reorderProduct", error);
+      setError("Não foi possível reordenar o produto. Tente novamente.");
+    } finally {
+      setReorderingId(null);
+    }
+  }
+
+  function renderOrderControls(
+    product: Product,
+    index: number,
+    className = "",
+  ) {
+    const isFirst = index === 0;
+    const isLast = index === products.length - 1;
+    const isBusy = reorderingId === product.id;
+
+    return (
+      <div className={`flex items-center gap-1 ${className}`}>
+        <button
+          type="button"
+          disabled={isFirst || isBusy}
+          onClick={() => void handleReorder(product.id, "up")}
+          className="inline-flex size-8 items-center justify-center rounded-lg border border-zinc-200 text-zinc-700 transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40"
+          aria-label={`Subir ${product.name}`}
+        >
+          ↑
+        </button>
+        <button
+          type="button"
+          disabled={isLast || isBusy}
+          onClick={() => void handleReorder(product.id, "down")}
+          className="inline-flex size-8 items-center justify-center rounded-lg border border-zinc-200 text-zinc-700 transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40"
+          aria-label={`Descer ${product.name}`}
+        >
+          ↓
+        </button>
+      </div>
+    );
   }
 
   if (!products.length) {
@@ -48,6 +101,7 @@ export function ProductsTable({ products }: { products: Product[] }) {
         <table className="w-full text-left text-sm">
           <thead className="border-b border-zinc-100 bg-zinc-50/80">
             <tr>
+              <th className="px-4 py-3 font-medium text-zinc-600">Ordem</th>
               <th className="px-4 py-3 font-medium text-zinc-600">Produto</th>
               <th className="px-4 py-3 font-medium text-zinc-600">Preço</th>
               <th className="px-4 py-3 font-medium text-zinc-600">Estoque</th>
@@ -56,8 +110,11 @@ export function ProductsTable({ products }: { products: Product[] }) {
             </tr>
           </thead>
           <tbody>
-            {products.map((p) => (
+            {products.map((p, index) => (
               <tr key={p.id} className="border-b border-zinc-50">
+                <td className="px-4 py-3">
+                  {renderOrderControls(p, index)}
+                </td>
                 <td className="px-4 py-3">
                   <p className="font-medium text-zinc-900">{p.name}</p>
                   <p className="text-xs text-zinc-500">{p.brand}</p>
@@ -99,13 +156,18 @@ export function ProductsTable({ products }: { products: Product[] }) {
       </div>
 
       <div className="flex flex-col gap-3 md:hidden">
-        {products.map((p) => (
+        {products.map((p, index) => (
           <article
             key={p.id}
             className="rounded-2xl border border-zinc-200/60 bg-white p-4"
           >
-            <p className="font-medium text-zinc-900">{p.name}</p>
-            <p className="text-xs text-zinc-500">{p.brand}</p>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-medium text-zinc-900">{p.name}</p>
+                <p className="text-xs text-zinc-500">{p.brand}</p>
+              </div>
+              {renderOrderControls(p, index)}
+            </div>
             <div className="mt-3 flex items-center justify-between">
               <span className="font-mono text-sm font-semibold">
                 {formatCurrency(p.price_cents)}

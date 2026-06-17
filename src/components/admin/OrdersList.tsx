@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { updateOrderStatus } from "@/app/actions/products";
 import type { Order } from "@/lib/types/database";
-import { formatCurrency, formatOrderStatus } from "@/lib/utils/format";
+import {
+  formatCurrency,
+  formatOrderStatus,
+  formatPaymentStatus,
+} from "@/lib/utils/format";
 
 export function OrdersList({ orders }: { orders: Order[] }) {
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +70,11 @@ export function OrdersList({ orders }: { orders: Order[] }) {
               <p className="text-sm text-zinc-500">
                 {formatOrderStatus(order.status)}
               </p>
+              {order.payment_status && (
+                <p className="mt-1 text-xs font-medium text-emerald-700">
+                  {formatPaymentStatus(order.payment_status)}
+                </p>
+              )}
             </div>
           </div>
 

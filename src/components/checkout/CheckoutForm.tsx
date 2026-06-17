@@ -2,11 +2,11 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { lookupCustomerByPhone } from "@/app/actions/orders";
 import {
-  createWhatsAppOrder,
-  lookupCustomerByPhone,
-  type CheckoutState,
-} from "@/app/actions/orders";
+  createStripeCheckout,
+  type StripeCheckoutState,
+} from "@/app/actions/stripe-checkout";
 import type { Product } from "@/lib/types/database";
 import { formatCurrency } from "@/lib/utils/format";
 import {
@@ -15,7 +15,7 @@ import {
   normalizePhone,
 } from "@/lib/utils/phone";
 
-const initialState: CheckoutState = { ok: false };
+const initialState: StripeCheckoutState = { ok: false };
 
 type LookupStatus = "idle" | "loading" | "found" | "not_found";
 
@@ -28,7 +28,7 @@ export function CheckoutForm({
 }) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState(
-    createWhatsAppOrder,
+    createStripeCheckout,
     initialState,
   );
 
@@ -91,10 +91,16 @@ export function CheckoutForm({
   }, [phone, phoneReady, normalizedPhone]);
 
   useEffect(() => {
-    if (state.ok && state.whatsappUrl && !redirected.current) {
+    if (
+      state.ok &&
+      state.orderId &&
+      state.productSlug &&
+      !redirected.current
+    ) {
       redirected.current = true;
-      window.open(state.whatsappUrl, "_blank", "noopener,noreferrer");
-      router.push("/sucesso");
+      router.push(
+        `/catalogo/${state.productSlug}/pagamento?order=${state.orderId}`,
+      );
     }
   }, [state, router]);
 
@@ -182,13 +188,14 @@ export function CheckoutForm({
 
       <div className="flex flex-col gap-2">
         <label htmlFor="customerEmail" className="text-sm font-medium text-zinc-700">
-          E-mail (opcional)
+          E-mail
         </label>
         <input
           id="customerEmail"
           name="customerEmail"
           type="email"
           inputMode="email"
+          required
           autoComplete="email"
           value={customerEmail}
           onChange={(e) => setCustomerEmail(e.target.value)}
@@ -249,7 +256,7 @@ export function CheckoutForm({
         disabled={pending || !phoneReady}
         className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-rose-900 text-base font-medium text-white transition-transform active:scale-[0.98] disabled:opacity-60"
       >
-        {pending ? "Registrando..." : "Finalizar no WhatsApp"}
+        {pending ? "Preparando pagamento..." : "Continuar para pagamento"}
       </button>
     </form>
   );

@@ -23,3 +23,14 @@ export function formatOrderStatus(status: string): string {
   };
   return map[status] ?? status;
 }
+
+export function formatPaymentStatus(status: string | null): string {
+  if (!status) return "—";
+  const map: Record<string, string> = {
+    awaiting_payment: "Aguardando pagamento",
+    paid: "Pago",
+    failed: "Falhou",
+    refunded: "Reembolsado",
+  };
+  return map[status] ?? status;
+}

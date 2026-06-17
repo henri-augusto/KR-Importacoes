@@ -40,3 +40,34 @@ export function buildOrderWhatsAppMessage(params: {
 
   return lines.join("\n");
 }
+
+export function buildPaidOrderWhatsAppMessage(params: {
+  orderId: string;
+  customerName: string;
+  customerPhone: string;
+  city?: string;
+  state?: string;
+  productName: string;
+  quantity: number;
+  totalCents: number;
+}): string {
+  const location = [params.city, params.state].filter(Boolean).join(" - ");
+  const lines = [
+    "Olá! Meu pagamento foi confirmado na KR Serviços e Importações.",
+    "",
+    `Pedido: #${params.orderId.slice(0, 8).toUpperCase()}`,
+    "Pagamento confirmado via Stripe.",
+    "",
+    `Cliente: ${params.customerName}`,
+    `Telefone: ${params.customerPhone}`,
+    location ? `Cidade: ${location}` : null,
+    "",
+    `Produto: ${params.productName}`,
+    `Quantidade: ${params.quantity}`,
+    `Total pago: ${formatCurrency(params.totalCents)}`,
+    "",
+    "Gostaria de combinar a entrega/envio. Obrigado!",
+  ].filter((line): line is string => line !== null);
+
+  return lines.join("\n");
+}

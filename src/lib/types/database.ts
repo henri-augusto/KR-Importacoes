@@ -4,6 +4,12 @@ export type OrderStatus =
   | "confirmed"
   | "cancelled";
 
+export type PaymentStatus =
+  | "awaiting_payment"
+  | "paid"
+  | "failed"
+  | "refunded";
+
 export type ProductGender = "masculino" | "feminino" | "unissex";
 
 export interface ProductCategory {
@@ -29,6 +35,7 @@ export interface Product {
   category_id: string | null;
   is_featured: boolean;
   is_active: boolean;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 }
@@ -47,9 +54,13 @@ export interface Order {
   id: string;
   customer_id: string;
   status: OrderStatus;
+  payment_status: PaymentStatus | null;
   total_cents: number;
   notes: string | null;
   whatsapp_message: string | null;
+  stripe_checkout_session_id: string | null;
+  stripe_payment_intent_id: string | null;
+  paid_at: string | null;
   stock_discounted_at: string | null;
   created_at: string;
   updated_at: string;

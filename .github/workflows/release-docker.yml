@@ -15,6 +15,8 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
       NEXT_PUBLIC_WHATSAPP_NUMBER: ${{ vars.NEXT_PUBLIC_WHATSAPP_NUMBER }}
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+      NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL }}
 
     permissions:
       contents: read
@@ -54,6 +56,8 @@ jobs:
           test -n "$NEXT_PUBLIC_SUPABASE_URL" || (echo "::error::Missing GitHub variable NEXT_PUBLIC_SUPABASE_URL" && exit 1)
           test -n "$NEXT_PUBLIC_SUPABASE_ANON_KEY" || (echo "::error::Missing GitHub variable NEXT_PUBLIC_SUPABASE_ANON_KEY" && exit 1)
           test -n "$NEXT_PUBLIC_WHATSAPP_NUMBER" || (echo "::error::Missing GitHub variable NEXT_PUBLIC_WHATSAPP_NUMBER" && exit 1)
+          test -n "$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY" || (echo "::error::Missing GitHub variable NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY" && exit 1)
+          test -n "$NEXT_PUBLIC_APP_URL" || (echo "::error::Missing GitHub variable NEXT_PUBLIC_APP_URL" && exit 1)
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
@@ -69,3 +73,5 @@ jobs:
             NEXT_PUBLIC_SUPABASE_URL=${{ env.NEXT_PUBLIC_SUPABASE_URL }}
             NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ env.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
             NEXT_PUBLIC_WHATSAPP_NUMBER=${{ env.NEXT_PUBLIC_WHATSAPP_NUMBER }}
+            NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${{ env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_APP_URL=${{ env.NEXT_PUBLIC_APP_URL }}

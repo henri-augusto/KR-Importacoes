@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { BrandFilter } from "@/components/catalog/BrandFilter";
 import { CatalogFilters } from "@/components/catalog/CatalogFilters";
 import { ProductCard } from "@/components/catalog/ProductCard";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -12,6 +13,7 @@ function filterProducts(
   products: Awaited<ReturnType<typeof getActiveProducts>>,
   q?: string,
   genero?: string,
+  marca?: string,
 ) {
   return products.filter((p) => {
     const matchQ =
@@ -19,23 +21,33 @@ function filterProducts(
       p.name.toLowerCase().includes(q.toLowerCase()) ||
       p.brand.toLowerCase().includes(q.toLowerCase());
     const matchGender = !genero || p.gender === genero;
-    return matchQ && matchGender;
+    const matchBrand = !marca || p.brand.toLowerCase() === marca.toLowerCase();
+    return matchQ && matchGender && matchBrand;
   });
+}
+
+function getUniqueBrands(products: Awaited<ReturnType<typeof getActiveProducts>>): string[] {
+  const set = new Set<string>();
+  for (const p of products) {
+    if (p.brand) set.add(p.brand);
+  }
+  return Array.from(set).sort((a, b) => a.localeCompare(b, "pt-BR"));
 }
 
 export default async function CatalogoPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; genero?: string }>;
+  searchParams: Promise<{ q?: string; genero?: string; marca?: string }>;
 }) {
   const params = await searchParams;
   const products = await getActiveProducts();
-  const filtered = filterProducts(products, params.q, params.genero);
+  const brands = getUniqueBrands(products);
+  const filtered = filterProducts(products, params.q, params.genero, params.marca);
   const hasProducts = products.length > 0;
 
   return (
     <PageContainer className="py-10 pb-24 md:py-14">
-      <div className="mb-8 flex flex-col gap-3">
+      <div className="mb-6 flex flex-col gap-3">
         <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
           Catálogo
         </p>
@@ -48,10 +60,18 @@ export default async function CatalogoPage({
         </p>
       </div>
 
+      {brands.length > 0 && (
+        <div className="mb-6">
+          <Suspense fallback={<div className="h-10 animate-pulse rounded-full bg-zinc-100" />}>
+            <BrandFilter brands={brands} />
+          </Suspense>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-8 md:grid-cols-[240px_1fr] md:gap-10">
         <aside>
           <Suspense fallback={<div className="h-32 animate-pulse rounded-2xl bg-zinc-100" />}>
-            <CatalogFilters />
+            <CatalogFilters brands={brands} />
           </Suspense>
         </aside>
 

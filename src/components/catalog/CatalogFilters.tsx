@@ -11,7 +11,11 @@ const genders = [
   { value: "unissex", label: "Unissex" },
 ];
 
-export function CatalogFilters() {
+interface CatalogFiltersProps {
+  brands?: string[];
+}
+
+export function CatalogFilters({ brands = [] }: CatalogFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
@@ -19,27 +23,39 @@ export function CatalogFilters() {
 
   const currentGender = searchParams.get("genero") ?? "";
   const currentSearch = searchParams.get("q") ?? "";
+  const currentBrand = searchParams.get("marca") ?? "";
   const [selectedGender, setSelectedGender] = useState(currentGender);
+  const [selectedBrand, setSelectedBrand] = useState(currentBrand);
   const [lastGender, setLastGender] = useState(currentGender);
+  const [lastBrand, setLastBrand] = useState(currentBrand);
 
   if (lastGender !== currentGender) {
     setLastGender(currentGender);
     setSelectedGender(currentGender);
   }
 
+  if (lastBrand !== currentBrand) {
+    setLastBrand(currentBrand);
+    setSelectedBrand(currentBrand);
+  }
+
   function applyFilters(formData: FormData) {
     const params = new URLSearchParams();
     const q = (formData.get("q") as string)?.trim();
     const genero = formData.get("genero") as string;
+    const marca = formData.get("marca") as string;
 
     if (q) params.set("q", q);
     if (genero) params.set("genero", genero);
+    if (marca) params.set("marca", marca);
 
     startTransition(() => {
       router.push(`/catalogo?${params.toString()}`);
       setOpen(false);
     });
   }
+
+  const brandItems = [{ value: "", label: "Todas" }, ...brands.map((b) => ({ value: b, label: b }))];
 
   const form = (
     <form action={applyFilters} className="flex flex-col gap-4">
@@ -56,6 +72,38 @@ export function CatalogFilters() {
           className="min-h-11 rounded-xl border border-zinc-200 bg-white px-4 text-base text-zinc-900 outline-none focus:border-rose-900/40 focus:ring-2 focus:ring-rose-900/10"
         />
       </div>
+
+      {brands.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <span className="text-sm font-medium text-zinc-700">Marca</span>
+          <div className="flex flex-wrap gap-2">
+            {brandItems.map((b) => {
+              const isSelected = selectedBrand === b.value;
+              return (
+                <label
+                  key={b.value}
+                  className={`inline-flex min-h-9 cursor-pointer items-center rounded-full border px-3 text-sm font-medium transition-colors ${
+                    isSelected
+                      ? "border-rose-900 bg-rose-900 text-white shadow-sm"
+                      : "border-zinc-200 bg-white text-zinc-700 hover:border-rose-900/30 hover:bg-rose-50"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="marca"
+                    value={b.value}
+                    checked={isSelected}
+                    onChange={() => setSelectedBrand(b.value)}
+                    className="sr-only"
+                  />
+                  {b.label}
+                </label>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col gap-2">
         <span className="text-sm font-medium text-zinc-700">Gênero</span>
         <div className="flex flex-wrap gap-2">

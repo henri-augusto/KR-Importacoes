@@ -10,7 +10,7 @@ export function ProductPurchase({ product }: { product: Product }) {
   const maxQty = Math.min(product.stock_quantity || 1, 10);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div id="checkout" className="flex flex-col gap-6">
       <div className="flex items-center justify-between rounded-2xl border border-zinc-200/60 bg-white p-4">
         <span className="text-sm font-medium text-zinc-700">Quantidade</span>
         <div className="flex items-center gap-3">

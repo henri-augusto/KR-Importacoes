@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
+import { checkoutSchema } from "@/lib/orders/checkout-schema";
+import { upsertCustomerByPhone } from "@/lib/orders/customer";
 import { createServiceClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import {
   formatPhoneDisplay,
@@ -10,32 +11,6 @@ import {
 } from "@/lib/utils/phone";
 import { buildOrderWhatsAppMessage, buildWhatsAppUrl } from "@/lib/utils/whatsapp";
 import type { Customer, Product } from "@/lib/types/database";
-
-const phoneSchema = z
-  .string()
-  .min(1, "Informe um telefone válido")
-  .transform(normalizePhone)
-  .refine(isValidBrazilianPhone, {
-    message: "Informe um telefone válido (10 ou 11 dígitos)",
-  });
-
-const checkoutSchema = z.object({
-  productId: z.string().min(1),
-  productSlug: z.string().min(1),
-  productName: z.string().min(1),
-  productBrand: z.string().min(1),
-  unitPriceCents: z.coerce.number().int().positive(),
-  quantity: z.coerce.number().int().min(1).max(99),
-  customerName: z.string().min(2, "Informe seu nome"),
-  customerPhone: phoneSchema,
-  customerEmail: z
-    .string()
-    .optional()
-    .transform((v) => (v === "" || !v ? undefined : v))
-    .pipe(z.string().email("E-mail inválido").optional()),
-  customerCity: z.string().optional(),
-  customerState: z.string().max(2).optional(),
-});
 
 export type CheckoutState = {
   ok: boolean;
@@ -89,70 +64,6 @@ export async function lookupCustomerByPhone(
   } catch (error) {
     console.error("[orders] lookupCustomerByPhone", error);
     return { found: false };
-  }
-}
-
-async function upsertCustomerByPhone(
-  supabase: NonNullable<ReturnType<typeof createServiceClient>>,
-  data: {
-    customerName: string;
-    customerPhone: string;
-    customerEmail?: string;
-    customerCity?: string;
-    customerState?: string;
-  },
-): Promise<{ id: string } | null> {
-  const phone = data.customerPhone;
-
-  try {
-    const { data: existing, error: lookupError } = await supabase
-      .from("customers")
-      .select("id")
-      .eq("phone", phone)
-      .maybeSingle();
-
-    if (lookupError) {
-      console.error("[orders] upsertCustomerByPhone lookup", lookupError);
-      return null;
-    }
-
-    const payload = {
-      name: data.customerName,
-      phone,
-      email: data.customerEmail || null,
-      city: data.customerCity || null,
-      state: data.customerState?.toUpperCase() || null,
-    };
-
-    if (existing) {
-      const { data: updated, error } = await supabase
-        .from("customers")
-        .update(payload)
-        .eq("id", existing.id)
-        .select("id")
-        .single();
-
-      if (error || !updated) {
-        if (error) console.error("[orders] upsertCustomerByPhone update", error);
-        return null;
-      }
-      return updated;
-    }
-
-    const { data: created, error } = await supabase
-      .from("customers")
-      .insert(payload)
-      .select("id")
-      .single();
-
-    if (error || !created) {
-      if (error) console.error("[orders] upsertCustomerByPhone insert", error);
-      return null;
-    }
-    return created;
-  } catch (error) {
-    console.error("[orders] upsertCustomerByPhone", error);
-    return null;
   }
 }
 
