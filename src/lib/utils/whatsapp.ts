@@ -3,7 +3,7 @@ import { formatCurrency } from "@/lib/utils/format";
 
 export function getWhatsAppNumber(): string {
   return (
-    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.replace(/\D/g, "") ?? "5511999999999"
+    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.replace(/\D/g, "") ?? "5519920099652"
   );
 }
 
