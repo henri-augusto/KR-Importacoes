@@ -35,7 +35,7 @@ export default async function HomePage() {
                 href="/catalogo"
                 className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-zinc-200 bg-white px-8 text-base font-medium text-zinc-800 sm:w-auto"
               >
-                Comprar pelo WhatsApp
+                Acesse o catálogo
               </Link>
             </div>
           </div>
@@ -138,15 +138,14 @@ export default async function HomePage() {
                 Como funciona a compra
               </h2>
               <p className="mt-4 max-w-md text-base leading-relaxed text-zinc-600">
-                Sem cadastro obrigatório. Você informa dados básicos, registramos
-                o pedido e abrimos o WhatsApp com a mensagem pronta para enviar.
+                Sem cadastro obrigatório. Compre pelo nosso parceiro STRIPE e combine a entrega pelo nosso WhatsApp.
               </p>
             </div>
             <ol className="flex flex-col gap-6">
               {[
                 { step: "01", text: "Escolha o perfume no catálogo" },
-                { step: "02", text: "Informe nome, telefone e cidade" },
-                { step: "03", text: "Finalize no WhatsApp com nossa equipe" },
+                { step: "02", text: "Realize a compra de forma segura na página" },
+                { step: "03", text: "Combine a entrega pelo nosso WhatsApp" },
               ].map((item) => (
                 <li
                   key={item.step}

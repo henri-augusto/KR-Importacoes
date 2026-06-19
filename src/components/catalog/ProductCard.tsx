@@ -38,12 +38,12 @@ export function ProductCard({ product }: { product: Product }) {
         {product.volume_ml && (
           <p className="text-[11px] text-zinc-500 md:text-xs">{product.volume_ml} ml</p>
         )}
-        <div className="mt-auto flex items-baseline gap-2 pt-2">
-          <span className="font-mono text-base font-semibold text-zinc-900 md:text-lg">
+        <div className="mt-auto flex flex-col items-start gap-0.5 pt-2 md:flex-row md:items-baseline md:gap-2">
+          <span className="whitespace-nowrap font-mono text-base font-semibold text-zinc-900 md:text-lg">
             {formatCurrency(product.price_cents)}
           </span>
           {product.compare_at_price_cents && (
-            <span className="font-mono text-xs text-zinc-400 line-through md:text-sm">
+            <span className="whitespace-nowrap font-mono text-[11px] text-zinc-400 line-through md:text-sm">
               {formatCurrency(product.compare_at_price_cents)}
             </span>
           )}
